@@ -87,8 +87,16 @@ class RecipiesController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Recipie $recipie)
+    public function destroy(int $id)
     {
-        //
+        $recipy = Recipie::find($id);
+
+        if(!$recipy) {
+            return response()->json(['message' => __('Recipie not found')], 404);
+        }
+
+        $recipy->delete();
+
+        return response()->json(['message' => __('Recipie deleted')]);
     }
 }
