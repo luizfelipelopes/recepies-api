@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\V1\RecipieStoreRequest;
+use App\Http\Requests\Api\V1\RecipieUpdateRequest;
 use App\Http\Resources\Api\V1\RecipiesCollection;
 use App\Http\Resources\Api\V1\RecipiesResource;
 use App\Models\Recipie;
-use Illuminate\Http\Request;
 
 class RecipiesController extends Controller
 {
@@ -23,17 +24,9 @@ class RecipiesController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(RecipieStoreRequest $request)
     {
-        $request->validate([
-            'title' => 'required|string',
-            'image' => 'url|nullable',
-            'ingredients' => 'required|string',
-            'instructions' => 'required|string',
-            'category' => 'required|string|in:breakfast,lunch,dinner,snack',
-        ]);
-        
-        return new RecipiesResource(Recipie::create($request->all()));
+        return new RecipiesResource(Recipie::create($request->validated()));
     }
 
     /**
@@ -53,35 +46,11 @@ class RecipiesController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Recipie $recipy)
+    public function update(RecipieUpdateRequest $request, Recipie $recipy)
     {
-        $isPatch = $request->isMethod('patch');
-
-        if($isPatch) {
-            
-            $request->validate([
-                'title' => 'sometimes|required|string',
-                'image' => 'sometimes|url|nullable',
-                'ingredients' => 'sometimes|required|string',
-                'instructions' => 'sometimes|required|string',
-                'category' => 'sometimes|required|string|in:breakfast,lunch,dinner,snack',
-            ]);
-
-        } else {
-
-            $request->validate([
-                'title' => 'required|string',
-                'image' => 'url|nullable',
-                'ingredients' => 'required|string',
-                'instructions' => 'required|string',
-                'category' => 'required|string|in:breakfast,lunch,dinner,snack',
-            ]);
-        }
-
-        $recipy->update($request->all());
+        $recipy->update($request->validated());
 
         return new RecipiesResource($recipy);
-        
     }
 
     /**
