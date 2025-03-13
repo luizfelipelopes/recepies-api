@@ -1,5 +1,9 @@
 <?php
 
+beforeEach(function () {
+    $this->getJson('/api/setup');
+});
+
 it('should create a recipie with image', function () {
 
     $data = [

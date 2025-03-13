@@ -1,6 +1,9 @@
 <?php
 
 use App\Models\Recipie;
+beforeEach(function () {
+    $this->getJson('/api/setup');
+});
 
 it('should return a list of recipies', function () {
     
@@ -46,7 +49,7 @@ it('should not return a list of recipies', function () {
 it('should return a list of recipies with pagination', function () {
 
     Recipie::factory()->count(100)->create();
-    
+
     $response = $this->getJson('/api/V1/recipies?page=2');
     $response->assertOk()
     ->assertJsonCount(10, 'data')

@@ -2,6 +2,10 @@
 
 use App\Models\Recipie;
 
+beforeEach(function () {
+    $this->getJson('/api/setup');
+});
+
 it('should return a recipie', function() {
 
     $recipie = Recipie::factory()->create([

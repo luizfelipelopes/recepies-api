@@ -4,6 +4,8 @@ use App\Models\Recipie;
 
 beforeEach(function () {
 
+    $this->getJson('/api/setup');
+    
     $recipie = Recipie::factory()->create([
         'title' => 'Test Recipie',
         'image' => 'https://via.placeholder.com/150',
