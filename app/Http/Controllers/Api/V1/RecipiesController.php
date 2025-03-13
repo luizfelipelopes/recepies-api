@@ -58,14 +58,20 @@ class RecipiesController extends Controller
      */
     public function destroy(int $id)
     {
-        $recipy = Recipie::find($id);
+        $recipie = Recipie::find($id);
 
-        if(!$recipy) {
-            return response()->json(['message' => __('Recipie not found')], 404);
+        if(!$recipie) {
+            return response()->json(['message' => __('Recipie not found.')], 404);
         }
 
-        $recipy->delete();
+        $user = request()->user();
 
-        return response()->json(['message' => __('Recipie deleted')]);
+        if($user && $user->cannot('delete', $recipie)) {
+            return response()->json(['message' => __('You are not have authorization to delete a Recipie.')], 403);
+        }
+
+        $recipie->delete();
+
+        return response()->json(['message' => __('Recipie deleted!')]);
     }
 }
