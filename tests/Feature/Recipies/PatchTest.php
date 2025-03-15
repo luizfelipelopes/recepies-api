@@ -4,8 +4,11 @@ use App\Models\Recipie;
 
 beforeEach(function () {
 
-    $this->getJson('/api/setup');
-    
+    $setupResponse = $this->getJson('/api/setup');
+    auth()->logout();
+    $this->tokens = $setupResponse->json();
+    $this->token = $this->tokens['crud'];
+
     $recipie = Recipie::factory()->create([
         'title' => 'Test Recipie',
         'image' => 'https://via.placeholder.com/150',
@@ -18,13 +21,32 @@ beforeEach(function () {
 
 });
 
+it('should not update a not authenticated user', function () {
+
+    $response = $this->patchJson("/api/V1/recipies/{$this->id}");
+    $response->assertStatus(401);
+
+});
+
+it('should not update a not authorized user', function () {
+
+
+    $token = $this->tokens['basic'];
+
+    $response = $this->withToken($token)
+    ->patchJson("/api/V1/recipies/{$this->id}");
+    $response->assertStatus(403);
+
+});
+
 it('should update a recipie with image', function () {
 
     $data = [
         'title' => 'Test Recipie (Editado)',
     ];
 
-    $response = $this->patchJson("/api/V1/recipies/{$this->id}", $data);
+    $response = $this->withToken($this->token)
+    ->patchJson("/api/V1/recipies/{$this->id}", $data);
     $response->assertOk()
     ->assertExactJson([
         'id' => 1,
@@ -43,7 +65,8 @@ it('should create a recipie without image', function () {
         'image' => null,
     ];
 
-    $response = $this->patchJson("/api/V1/recipies/{$this->id}", $data);
+    $response = $this->withToken($this->token)
+    ->patchJson("/api/V1/recipies/{$this->id}", $data);
     $response->assertOk()
     ->assertExactJson([
         'id' => 1,
@@ -61,7 +84,8 @@ it('should validate a image that is not a url', function() {
         'image' => 'teste',
     ];
 
-    $response = $this->patchJson("/api/V1/recipies/{$this->id}", $data);
+    $response = $this->withToken($this->token)
+    ->patchJson("/api/V1/recipies/{$this->id}", $data);
     $response->assertStatus(422);
 });
 
@@ -70,7 +94,8 @@ it('should validate a title that is empty', function () {
         'title' => null,
     ];
 
-    $response = $this->patchJson("/api/V1/recipies/{$this->id}", $data);
+    $response = $this->withToken($this->token)
+    ->patchJson("/api/V1/recipies/{$this->id}", $data);
     $response->assertStatus(422);
 });
 
@@ -79,7 +104,8 @@ it('should validate a title that is not a string', function () {
         'title' => 1234,
     ];
 
-    $response = $this->patchJson("/api/V1/recipies/{$this->id}", $data);
+    $response = $this->withToken($this->token)
+    ->patchJson("/api/V1/recipies/{$this->id}", $data);
     $response->assertStatus(422);
 });
 
@@ -89,7 +115,8 @@ it('should validate a ingredients empty', function () {
         'ingredients' => null,
     ];
 
-    $response = $this->patchJson("/api/V1/recipies/{$this->id}", $data);
+    $response = $this->withToken($this->token)
+    ->patchJson("/api/V1/recipies/{$this->id}", $data);
     $response->assertStatus(422);
 
 });
@@ -99,7 +126,8 @@ it('should validate a ingredients that is not a text', function () {
         'ingredients' => 1234,
     ];
 
-    $response = $this->patchJson("/api/V1/recipies/{$this->id}", $data);
+    $response = $this->withToken($this->token)
+    ->patchJson("/api/V1/recipies/{$this->id}", $data);
     $response->assertStatus(422);
 });
 
@@ -109,7 +137,8 @@ it('should validate a instructions empty', function () {
         'instructions' => null,
     ];
 
-    $response = $this->patchJson("/api/V1/recipies/{$this->id}", $data);
+    $response = $this->withToken($this->token)
+    ->patchJson("/api/V1/recipies/{$this->id}", $data);
     $response->assertStatus(422);
 
 });
@@ -120,7 +149,8 @@ it('should validate a instructions that is not a text', function () {
         'instructions' => 1234,
     ];
 
-    $response = $this->patchJson("/api/V1/recipies/{$this->id}", $data);
+    $response = $this->withToken($this->token)
+    ->patchJson("/api/V1/recipies/{$this->id}", $data);
     $response->assertStatus(422);
 
 });
@@ -131,7 +161,8 @@ it('should validate a category empty', function () {
         'category' => null
     ];
 
-    $response = $this->patchJson("/api/V1/recipies/{$this->id}", $data);
+    $response = $this->withToken($this->token)
+    ->patchJson("/api/V1/recipies/{$this->id}", $data);
     $response->assertStatus(422);
 
 
@@ -143,7 +174,8 @@ it('should validate a category that is not a string', function () {
         'category' => 1234
     ];
 
-    $response = $this->patchJson("/api/V1/recipies/{$this->id}", $data);
+    $response = $this->withToken($this->token)
+    ->patchJson("/api/V1/recipies/{$this->id}", $data);
     $response->assertStatus(422);
 
 });
@@ -154,7 +186,8 @@ it('should validate a category that is invalid', function () {
         'category' => 'test'
     ];
 
-    $response = $this->patchJson("/api/V1/recipies/{$this->id}", $data);
+    $response = $this->withToken($this->token)
+    ->patchJson("/api/V1/recipies/{$this->id}", $data);
     $response->assertStatus(422);
 
 });

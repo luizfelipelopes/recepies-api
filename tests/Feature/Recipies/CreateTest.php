@@ -1,188 +1,153 @@
 <?php
 
 beforeEach(function () {
-    $this->getJson('/api/setup');
-});
+    
+    $setupResponse = $this->getJson('/api/setup');
+    auth()->logout();
+    $this->tokens = $setupResponse->json();    
+    $this->token = $this->tokens['crud'];
 
-it('should create a recipie with image', function () {
-
-    $data = [
+    $this->data = [
         'title' => 'Test Recipie',
-        'image' => 'https://via.placeholder.com/150',
+        'image' => null,
         'ingredients' => 'Test Ingredients',
         'instructions' => 'Test Instructions',
         'category' => 'breakfast',
     ];
+});
 
-    $response = $this->postJson('/api/V1/recipies', $data);
+it('should not create a not authenticated user', function () {
+
+    auth()->logout();
+
+    $response = $this->postJson('/api/V1/recipies', $this->data);
+    $response->assertStatus(401);
+
+});
+
+it('should not create a not authorized user', function () {
+
+    $token = $this->tokens['basic'];
+
+    $this->withToken($token)
+    ->postJson('/api/V1/recipies', $this->data)
+    ->assertStatus(403);
+
+});
+
+it('should create a recipie with image', function () {
+
+    $this->data['image'] = 'https://via.placeholder.com/150';
+
+    $response = $this->withToken($this->token)
+    ->postJson('/api/V1/recipies', $this->data);
     $response->assertStatus(201)
-    ->assertExactJson([
-        'id' => 1,
-        'title' => 'Test Recipie',
-        'image' => 'https://via.placeholder.com/150',
-        'ingredients' => 'Test Ingredients',
-        'instructions' => 'Test Instructions',
-        'category' => 'breakfast',
-    ]);
+    ->assertExactJson(array_merge(['id' => 1], $this->data));
 
 });
 
 it('should create a recipie without image', function () {
 
-    $data = [
-        'title' => 'Test Recipie',
-        'ingredients' => 'Test Ingredients',
-        'instructions' => 'Test Instructions',
-        'category' => 'dinner',
-    ];
-
-    $response = $this->postJson('/api/V1/recipies', $data);
+    $response = $this->withToken($this->token)
+    ->postJson('/api/V1/recipies', $this->data);
     $response->assertStatus(201)
-    ->assertExactJson([
-        'id' => 1,
-        'title' => 'Test Recipie',
-        'image' => null,
-        'ingredients' => 'Test Ingredients',
-        'instructions' => 'Test Instructions',
-        'category' => 'dinner',
-    ]);
+    ->assertExactJson(array_merge(['id' => 1], $this->data));
 
 });
 
 it('should validate a image that is not a url', function() {
-    $data = [
-        'title' => 'Test Recipie',
-        'image' => 'teste',
-        'ingredients' => 'Test Ingredients',
-        'instructions' => 'Test Instructions',
-        'category' => 'lunch',
-    ];
 
-    $response = $this->postJson('/api/V1/recipies', $data);
+    $this->data['image'] = 'teste';
+
+    $response = $this->withToken($this->token)
+    ->postJson('/api/V1/recipies', $this->data);
     $response->assertStatus(422);
 });
 
 it('should validate a title empty', function () {
-    $data = [
-        'image' => 'https://via.placeholder.com/150',
-        'ingredients' => 'Test Ingredients',
-        'instructions' => 'Test Instructions',
-        'category' => 'breakfast',
-    ];
 
-    $response = $this->postJson('/api/V1/recipies', $data);
+    $this->data['title'] = null;
+
+    $response = $this->withToken($this->token)
+    ->postJson('/api/V1/recipies', $this->data);
     $response->assertStatus(422);
 });
 
 it('should validate a title that is not a string', function () {
-    $data = [
-        'title' => 1234,
-        'image' => 'https://via.placeholder.com/150',
-        'ingredients' => 'Test Ingredients',
-        'instructions' => 'Test Instructions',
-        'category' => 'lunch',
-    ];
 
-    $response = $this->postJson('/api/V1/recipies', $data);
+    $this->data['title'] = 1234;
+
+    $response = $this->withToken($this->token)
+    ->postJson('/api/V1/recipies', $this->data);
     $response->assertStatus(422);
 });
 
 it('should validate a ingredients empty', function () {
 
-    $data = [
-        'title' => 'Test Recipie',
-        'image' => 'https://via.placeholder.com/150',
-        'instructions' => 'Test Instructions',
-        'category' => 'lunch',
-    ];
+    $this->data['ingredients'] = null;
 
-    $response = $this->postJson('/api/V1/recipies', $data);
+    $response = $this->withToken($this->token)
+    ->postJson('/api/V1/recipies', $this->data);
     $response->assertStatus(422);
 
 });
 
 it('should validate a ingredients that is not a text', function () {
-    $data = [
-        'title' => 'Test Recipie',
-        'image' => 'https://via.placeholder.com/150',
-        'ingredients' => 1234,
-        'instructions' => 'Test Instructions',
-        'category' => 'lunch',
-    ];
+    
+    $this->data['ingredients'] = 1234;
 
-    $response = $this->postJson('/api/V1/recipies', $data);
+    $response = $this->withToken($this->token)
+    ->postJson('/api/V1/recipies', $this->data);
     $response->assertStatus(422);
 });
 
 
 it('should validate a instructions empty', function () {
-    $data = [
-        'title' => 'Test Recipie',
-        'image' => 'https://via.placeholder.com/150',
-        'ingredients' => 'Test Ingredients',
-        'category' => 'breakfast',
-    ];
 
-    $response = $this->postJson('/api/V1/recipies', $data);
+    $this->data['instructions'] = null;
+
+    $response = $this->withToken($this->token)
+    ->postJson('/api/V1/recipies', $this->data);
     $response->assertStatus(422);
 
 });
 
 it('should validate a instructions that is not a text', function () {
 
-    $data = [
-        'title' => 'Test Recipie',
-        'image' => 'https://via.placeholder.com/150',
-        'ingredients' => 'Test Ingredients',
-        'instructions' => 1234,
-        'category' => 'breakfast',
-    ];
+    $this->data['instructions'] = 1234;
 
-    $response = $this->postJson('/api/V1/recipies', $data);
+    $response = $this->withToken($this->token)
+    ->postJson('/api/V1/recipies', $this->data);
     $response->assertStatus(422);
 
 });
 
 it('should validate a category empty', function () {
 
-    $data = [
-        'title' => 'Test Recipie',
-        'image' => 'https://via.placeholder.com/150',
-        'ingredients' => 'Test Ingredients',
-        'instructions' => 'Test Instructions',
-    ];
+    $this->data['category'] = null;
 
-    $response = $this->postJson('/api/V1/recipies', $data);
+    $response = $this->withToken($this->token)
+    ->postJson('/api/V1/recipies', $this->data);
     $response->assertStatus(422);
 
 });
 
 it('should validate a category that is not a string', function () {
 
-    $data = [
-        'title' => 'Test Recipie',
-        'image' => 'https://via.placeholder.com/150',
-        'ingredients' => 'Test Ingredients',
-        'instructions' => 'Test Instructions',
-        'category' => 1234,
-    ];
+    $this->data['category'] = 1234;
 
-    $response = $this->postJson('/api/V1/recipies', $data);
+    $response = $this->withToken($this->token)
+    ->postJson('/api/V1/recipies', $this->data);
     $response->assertStatus(422);
 
 });
 
 it('should validate a category that is invalid', function () {
 
-    $data = [
-        'title' => 'Test Recipie',
-        'image' => 'https://via.placeholder.com/150',
-        'ingredients' => 'Test Ingredients',
-        'instructions' => 'Test Instructions',
-        'category' => 'teste',
-    ];
+    $this->data['category'] = 'teste';
 
-    $response = $this->postJson('/api/V1/recipies', $data);
+    $response = $this->withToken($this->token)
+    ->postJson('/api/V1/recipies', $this->data);
     $response->assertStatus(422);
 
 });
