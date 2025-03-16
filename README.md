@@ -2,7 +2,7 @@
 
 API for recipe management, allowing creation, reading, updating, and deletion (CRUD).
 
-🚀 **Tecnologias:** Laravel, Pest, SQLite, Sanctum
+🚀 **Technologies:** Laravel, Pest, SQLite, Sanctum
 
 
 ## 📋 Prerequisites
